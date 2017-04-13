@@ -1,52 +1,57 @@
+from itertools import cycle
+import sys
+import argparse
 import hashlib
-
-block_sz = 64  # in bytes
-blocks = []
-pt = ''
-ct = []
-key = '1e2r3t4y5u6i7o8p' * 2 # 256 bit key
-print("Key ;", key)
-key = int(key.encode("hex"), 16) # convet ascii key to int
-print("Key in hex")
-print(key)
-# print binascii.hexlify(key)
-# hashed_key = hashlib.sha256(key)
-print("bin of key in sha256")
-# print bin(int(hashed_key.hexdigest(), 16))
-pt = 'this is some test data ' * 2
-pt = pt.encode("hex")
-print("Hex of PT :", pt)
-sb = 0
-bs = 0
-full_blocks = len(pt) / block_sz
-leftover_bytes = len(pt) % block_sz
-print(full_blocks, " Blocks, ", leftover_bytes, " Leftover Bytes")
-
-for block in range(0, full_blocks):
-    sb = block * block_sz
-    bs = sb + block_sz
-    blocks.append(int(pt[sb:bs], 16))
-if leftover_bytes != 0:
-    padding = 'f' * (block_sz - leftover_bytes)
-    blocks.append(int(pt[bs + 1:] + padding, 16))
-# dump the pt data
-pt = ''
-print("PT - ", block)
-
-# XOR the blocks
-for block in range(0, len(blocks)):
-    ct.append(blocks[block] ^ key)
+import codecs
 
 
-print ("CT - ", ct)
-blocks = []
+def main():
+    argParse = argparse.ArgumentParser(description='XOR an input with a given key')
+    requiredArgs = argParse.add_argument_group('Required arguments')
+    requiredArgs.add_argument('-if', dest="fileIn", help="Input File", required=True)
+    requiredArgs.add_argument('-of', dest="fileOut", help="Output File", required=True)
+    requiredArgs.add_argument('-k', dest="keyString", help="Key", required=True)
+    argParse.add_argument('-v', dest="verbose", help="Verbose Mode")
+    args = argParse.parse_args()
 
-for block in range(0, len(ct)):
-    blocks.append(ct[block] ^ key)
-print("PT - ", blocks)
-block = bin(blocks[0]))
-print(block)
-block = block[1:])
-print(len(block) % 8)
-print(type(block))
-print(binascii.hexlify(block))
+    fileIn = args.fileIn
+    fileOut = args.fileOut
+    key = args.keyString
+
+    key = str.encode(key)
+    keyhash = hashlib.sha3_256()
+    keyhash.update(key)
+    key = keyhash.digest()
+    print(key, type(key))
+    print(bin(int.from_bytes(key, 'little')))
+
+    # key = map(bin, bytearray(key))
+
+    # print(key.hexdigest)
+
+    print(fileIn, fileOut, args.keyString)
+
+    f = open(fileIn, 'rb')
+    f.seek(0)
+    out = open(fileOut, 'w+b')
+    writting = True
+    while writting:
+        byte = f.read(32)
+        if byte:
+            bytelen = len(byte)
+            print(bytelen, type(bytelen))
+            byteXOR = ((int.from_bytes(byte, 'little')) ^ (int.from_bytes(key[0:bytelen], 'little')))
+            bytewrite = byteXOR.to_bytes(bytelen, byteorder='little')
+            out.write(bytewrite)
+            print(bytewrite)
+        else:
+            writting = False
+    f.close()
+    out.close()
+
+def getHash():
+    fileHash = hashlib.md5(open(fileOut, 'rb').read()).hexdigest()
+    print("Write Complete! with MD5 hash - {}".format(fileHash))
+
+if __name__ == "__main__":
+    main()
