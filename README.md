@@ -1,7 +1,7 @@
 # XorCipher
-A simple cipher showing XOR magic. 
+Requirements: Python 3.6
 
-usage: XOR.py [-h] -i FILEIN -o FILEOUT -k KEYSTRING
+Usage: XOR.py [-h] -i FILEIN -o FILEOUT -k KEYSTRING
 
 XOR an input with a given key
 
